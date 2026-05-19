@@ -85,6 +85,9 @@ export async function POST(request) {
     if (temperature !== undefined && typeof temperature === 'number') {
       config.temperature = temperature;
     }
+    if (body.responseMimeType && typeof body.responseMimeType === 'string') {
+      config.responseMimeType = body.responseMimeType;
+    }
 
     // Pilih model: gunakan gemini-2.5-flash sebagai default terbaru yang didukung.
     // Jika user secara eksplisit meminta gemini-1.5-flash (yang sudah retired/404), kita alihkan ke gemini-2.5-flash.

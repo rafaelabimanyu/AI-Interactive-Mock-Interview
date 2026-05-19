@@ -10,12 +10,24 @@ export default function PortfolioBuilder() {
     casualExperience: 'Saya pernah magang di bengkel komputer dekat sekolah selama 2 bulan. Di sana tugas saya membantu merakit PC pesanan pelanggan, menginstal Windows dan driver, serta melayani pelanggan yang ingin servis laptop. Kadang bapak pemilik bengkel sibuk, jadi saya yang mendiagnosis kerusakan sendiri. Saya senang karena dapat pujian dari pelanggan karena ramah dan servisnya cepat.',
   });
 
-  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  
   const [cvData, setCvData] = useState({
-    situation: 'Diberikan tanggung jawab di bengkel komputer untuk merakit pesanan PC pelanggan dan mengelola diagnosis awal kerusakan laptop saat pemilik bengkel berhalangan.',
-    task: 'Meningkatkan efisiensi waktu servis laptop dan merakit PC dengan kualitas instalasi sistem operasi yang stabil sesuai pesanan pelanggan.',
-    action: 'Melakukan diagnosis sistematis pada kerusakan perangkat keras laptop, menyusun urutan perakitan komponen PC secara efisien, serta menerapkan teknik komunikasi ramah saat melayani keluhan pelanggan.',
-    result: 'Berhasil merakit 15+ unit PC tanpa kendala instalasi, mempercepat proses diagnosis awal laptop pelanggan, dan meraih kepuasan pelanggan sebesar 100%.',
+    ringkasan_profil: 'Lulusan/Siswa proaktif bidang Rekayasa Perangkat Lunak (RPL) dengan pengalaman praktis terukur. Terlatih merumuskan dan mengeksekusi penyelesaian masalah secara sistematis menggunakan kerangka kerja STAR di lingkungan kerja nyata.',
+    keahlian: ['Pemeliharaan Perangkat Keras', 'Sistem Operasi Windows', 'Komunikasi Interpersonal', 'Diagnosis Kerusakan PC'],
+    pengalaman_star: [
+      {
+        posisi: 'Magang Teknisi Komputer',
+        perusahaan: 'Bengkel Komputer Lokal',
+        deskripsi_star: {
+          situasi: 'Diberikan tanggung jawab di bengkel komputer untuk merakit pesanan PC pelanggan dan mengelola diagnosis awal kerusakan laptop saat pemilik bengkel berhalangan.',
+          tugas: 'Meningkatkan efisiensi waktu servis laptop dan merakit PC dengan kualitas instalasi sistem operasi yang stabil sesuai pesanan pelanggan.',
+          tindakan: 'Melakukan diagnosis sistematis pada kerusakan perangkat keras laptop, menyusun urutan perakitan komponen PC secara efisien, serta menerapkan teknik komunikasi ramah saat melayani keluhan pelanggan.',
+          hasil: 'Berhasil merakit 15+ unit PC tanpa kendala instalasi, mempercepat proses diagnosis awal laptop pelanggan, dan meraih kepuasan pelanggan sebesar 100%.'
+        }
+      }
+    ]
   });
 
   const handleInputChange = (e) => {
@@ -23,19 +35,51 @@ export default function PortfolioBuilder() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleOptimize = (e) => {
+  const handleOptimize = async (e) => {
     e.preventDefault();
-    setIsOptimizing(true);
-    // Mocking API call latency
-    setTimeout(() => {
-      setIsOptimizing(false);
-      setCvData({
-        situation: `Ditugaskan mengelola layanan perakitan PC dan penanganan awal diagnosis kerusakan laptop pelanggan di bawah naungan unit kerja/jurusan ${formData.jurusan || 'Siswa SMK'}.`,
-        task: 'Mengoptimalkan alur pelayanan perakitan perangkat keras serta meminimalisir keterlambatan diagnosis unit laptop yang akan diservis.',
-        action: 'Menerapkan standar operational procedure (SOP) perakitan PC, menginstal konfigurasi OS & driver secara bersih, serta memberikan pelayanan ramah secara langsung kepada klien.',
-        result: 'Meningkatkan kecepatan perakitan PC, mempercepat waktu tunggu diagnosis pelanggan, serta membangun reputasi pelayanan prima yang berintegritas.',
+    setIsGenerating(true);
+    setErrorMsg('');
+
+    try {
+      const systemInstruction = 
+        "Kamu adalah seorang HRD profesional dan ahli pembuat CV ATS-friendly. Tugasmu adalah mengubah data pengalaman kasual siswa SMK/SMA berikut menjadi poin-poin kompetensi formal menggunakan Metode STAR (Situation, Task, Action, Result). Jawablah LANGSUNG dalam format JSON terstruktur dengan key: 'ringkasan_profil', 'keahlian' (array), 'pengalaman_star' (array of objects dengan key: posisi, perusahaan, deskripsi_star yang merupakan objek dengan key: situasi, tugas, tindakan, hasil).";
+
+      const promptText = `Nama Siswa: ${formData.name}\nJurusan: ${formData.jurusan}\nPengalaman Mentah/Kasual: ${formData.casualExperience}`;
+
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: promptText,
+          systemInstruction,
+          responseMimeType: 'application/json',
+          temperature: 0.2,
+        }),
       });
-    }, 1200);
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal menghubungi server API AI.');
+      }
+
+      // Parse JSON response dari Gemini
+      const parsedCV = JSON.parse(data.text);
+
+      // Pastikan format struktur object valid
+      setCvData({
+        ringkasan_profil: parsedCV.ringkasan_profil || '',
+        keahlian: Array.isArray(parsedCV.keahlian) ? parsedCV.keahlian : [],
+        pengalaman_star: Array.isArray(parsedCV.pengalaman_star) ? parsedCV.pengalaman_star : [],
+      });
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(err.message || 'Terjadi kesalahan saat memproses data dengan AI.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -82,7 +126,7 @@ export default function PortfolioBuilder() {
             <div className="flex items-center gap-3 flex-shrink-0">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Fase 1: Database Ready</span>
+                <span>Fase 4: Live AI Connected</span>
               </span>
             </div>
           </div>
@@ -159,13 +203,20 @@ export default function PortfolioBuilder() {
                 />
               </div>
 
+              {/* Error Message */}
+              {errorMsg && (
+                <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3.5 text-xs text-red-400">
+                  ⚠️ {errorMsg}
+                </div>
+              )}
+
               {/* Button Optimasi AI */}
               <button 
                 type="submit"
-                disabled={isOptimizing}
+                disabled={isGenerating}
                 className="glow-pill w-full inline-flex items-center justify-center rounded-xl bg-indigo-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isOptimizing ? (
+                {isGenerating ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -199,7 +250,33 @@ export default function PortfolioBuilder() {
               </div>
 
               {/* CV Sheet Mockup */}
-              <div className="flex-1 rounded-xl bg-white p-6 sm:p-8 text-slate-800 shadow-xl border border-slate-200">
+              <div className="flex-1 rounded-xl bg-white p-6 sm:p-8 text-slate-800 shadow-xl border border-slate-200 relative overflow-hidden">
+                
+                {/* Skeleton Overlay when Generating */}
+                {isGenerating && (
+                  <div className="absolute inset-0 bg-white/90 z-20 flex flex-col justify-center p-8 animate-pulse">
+                    <div className="flex flex-col items-center mb-6">
+                      <div className="h-8 bg-slate-200 rounded-md w-3/4 mb-3"></div>
+                      <div className="h-4 bg-slate-200 rounded-md w-1/2"></div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="h-4 bg-slate-200 rounded-md w-full"></div>
+                      <div className="h-4 bg-slate-200 rounded-md w-5/6"></div>
+                      <div className="h-16 bg-slate-200 rounded-md w-full mt-6"></div>
+                      <div className="h-16 bg-slate-200 rounded-md w-full"></div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-2 bg-slate-950/80 text-white px-5 py-3.5 rounded-xl shadow-lg border border-white/10">
+                        <svg className="animate-spin h-6 w-6 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-xs font-bold tracking-wider">AI sedang mengoptimasi...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* CV Name & Header */}
                 <div className="text-center border-b-2 border-slate-200 pb-4 mb-6">
                   <h4 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 uppercase">
@@ -219,64 +296,94 @@ export default function PortfolioBuilder() {
                       Ringkasan Profesional
                     </h5>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Lulusan/Siswa proaktif bidang {formData.jurusan || 'Keahlian Terkait'} dengan pengalaman praktis terukur. Terlatih merumuskan dan mengeksekusi penyelesaian masalah secara sistematis menggunakan kerangka kerja STAR di lingkungan kerja nyata.
+                      {cvData.ringkasan_profil || `Lulusan/Siswa proaktif bidang ${formData.jurusan || 'Keahlian Terkait'} dengan pengalaman praktis terukur. Terlatih merumuskan dan mengeksekusi penyelesaian masalah secara sistematis menggunakan kerangka kerja STAR di lingkungan kerja nyata.`}
                     </p>
                   </div>
+
+                  {/* Skills Section */}
+                  {cvData.keahlian && cvData.keahlian.length > 0 && (
+                    <div>
+                      <h5 className="text-[11px] font-extrabold text-indigo-600 tracking-wider uppercase mb-2 border-b border-slate-100 pb-0.5">
+                        Keahlian Utama
+                      </h5>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {cvData.keahlian.map((skill, idx) => (
+                          <span key={idx} className="bg-slate-100 border border-slate-200 rounded px-2.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Portfolio STAR Section */}
                   <div>
                     <h5 className="text-[11px] font-extrabold text-indigo-600 tracking-wider uppercase mb-3 border-b border-slate-100 pb-0.5">
                       Pencapaian Kerja / Proyek (Metode STAR)
                     </h5>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       
-                      {/* Situation */}
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-amber-100 text-[10px] font-extrabold text-amber-700">
-                          SIT
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-slate-700 leading-relaxed">
-                            <span className="font-semibold text-slate-950">Situasi:</span> {cvData.situation}
-                          </p>
-                        </div>
-                      </div>
+                      {cvData.pengalaman_star && cvData.pengalaman_star.map((exp, index) => {
+                        const star = exp.deskripsi_star || {};
+                        return (
+                          <div key={index} className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+                              <h6 className="text-xs font-bold text-slate-900">{exp.posisi || 'Pengalaman Kerja'}</h6>
+                              <span className="text-[10px] font-semibold text-slate-500 uppercase">{exp.perusahaan || 'Instansi/Bengkel'}</span>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              {/* Situation */}
+                              <div className="flex gap-3">
+                                <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-amber-100 text-[10px] font-extrabold text-amber-700">
+                                  SIT
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs text-slate-700 leading-relaxed">
+                                    <span className="font-semibold text-slate-950">Situasi:</span> {star.situasi || 'N/A'}
+                                  </p>
+                                </div>
+                              </div>
 
-                      {/* Task */}
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-blue-100 text-[10px] font-extrabold text-blue-700">
-                          TSK
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-slate-700 leading-relaxed">
-                            <span className="font-semibold text-slate-950">Tugas:</span> {cvData.task}
-                          </p>
-                        </div>
-                      </div>
+                              {/* Task */}
+                              <div className="flex gap-3">
+                                <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-blue-100 text-[10px] font-extrabold text-blue-700">
+                                  TSK
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs text-slate-700 leading-relaxed">
+                                    <span className="font-semibold text-slate-950">Tugas:</span> {star.tugas || 'N/A'}
+                                  </p>
+                                </div>
+                              </div>
 
-                      {/* Action */}
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-purple-100 text-[10px] font-extrabold text-purple-700">
-                          ACT
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-slate-700 leading-relaxed">
-                            <span className="font-semibold text-slate-950">Tindakan:</span> {cvData.action}
-                          </p>
-                        </div>
-                      </div>
+                              {/* Action */}
+                              <div className="flex gap-3">
+                                <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-purple-100 text-[10px] font-extrabold text-purple-700">
+                                  ACT
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs text-slate-700 leading-relaxed">
+                                    <span className="font-semibold text-slate-950">Tindakan:</span> {star.tindakan || 'N/A'}
+                                  </p>
+                                </div>
+                              </div>
 
-                      {/* Result */}
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-emerald-100 text-[10px] font-extrabold text-emerald-700">
-                          RST
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-slate-700 leading-relaxed">
-                            <span className="font-semibold text-slate-950">Hasil:</span> {cvData.result}
-                          </p>
-                        </div>
-                      </div>
+                              {/* Result */}
+                              <div className="flex gap-3">
+                                <div className="flex-shrink-0 flex items-center justify-center h-5 w-10 rounded bg-emerald-100 text-[10px] font-extrabold text-emerald-700">
+                                  RST
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs text-slate-700 leading-relaxed">
+                                    <span className="font-semibold text-slate-950">Hasil:</span> {star.hasil || 'N/A'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
 
                     </div>
                   </div>
