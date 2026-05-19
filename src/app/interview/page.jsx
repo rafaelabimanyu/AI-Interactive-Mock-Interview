@@ -1,61 +1,158 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
 export default function MockInterview() {
+  const [hasMounted, setHasMounted] = useState(false);
+  const [isSupported, setIsSupported] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [transcript, setTranscript] = useState('');
-  
+  const [interviewLogs, setInterviewLogs] = useState([]);
+  const [customAnswer, setCustomAnswer] = useState('');
+  const [showManualInput, setShowManualInput] = useState(false);
+
+  const recognitionRef = useRef(null);
+
   const interviewQuestions = [
     {
       id: 1,
-      section: 'Pengenalan Diri',
-      text: 'Selamat pagi. Selamat datang di simulasi wawancara INTERVIEW.AI. Untuk memulai, silakan perkenalkan diri Anda secara singkat dan ceritakan kompetensi keahlian yang Anda dalami di sekolah.'
+      section: 'Kerja Sama Tim',
+      text: 'Bagaimana cara Anda menyikapi perbedaan pendapat saat bekerja dalam tim di sekolah atau tempat magang? Berikan contoh situasi nyata yang pernah Anda hadapi.'
     },
     {
       id: 2,
-      section: 'Magang & Proyek',
-      text: 'Terima kasih atas perkenalannya. Sekarang, silakan ceritakan pengalaman magang (prakerin) atau proyek sekolah terpenting yang pernah Anda kerjakan. Jelaskan situasi awalnya.'
+      section: 'Penyelesaian Masalah',
+      text: 'Bisa Anda ceritakan masalah tersulit yang pernah Anda hadapi selama merancang proyek sekolah atau saat magang, dan langkah konkret apa yang Anda ambil untuk menyelesaikannya?'
     },
     {
       id: 3,
-      section: 'Tantangan (STAR)',
-      text: 'Sangat menarik. Saat berada dalam proyek atau kegiatan magang tersebut, apa tantangan terbesar yang Anda hadapi dan tindakan apa yang Anda ambil untuk mengatasinya?'
-    },
-    {
-      id: 4,
-      section: 'Hasil Akhir',
-      text: 'Bagaimana hasil akhir dari tindakan yang Anda lakukan tersebut? Apakah ada feedback terukur atau hasil konkret yang bisa Anda bagikan kepada kami?'
-    },
-    {
-      id: 5,
-      section: 'Rencana Karir',
-      text: 'Luar biasa. Pertanyaan terakhir dari kami: apa rencana karir jangka pendek Anda setelah lulus sekolah nanti, dan mengapa Anda tertarik dengan posisi ini?'
+      section: 'Motivasi & Kontribusi',
+      text: 'Apa motivasi terbesar Anda untuk melamar di posisi ini, dan bagaimana kompetensi jurusan Anda di sekolah dapat berkontribusi nyata pada produktivitas tim kami?'
     }
   ];
 
-  const handleMicToggle = () => {
-    if (!isListening) {
-      setIsListening(true);
-      setTranscript('Mendengarkan suara Anda... "Nama saya Budi Santoso, saya dari jurusan Rekayasa Perangkat Lunak. Selama sekolah saya sangat tertarik pada pembuatan program web..."');
-    } else {
-      setIsListening(false);
-      // Advance to next question or reset
-      if (currentQuestionIndex < interviewQuestions.length - 1) {
-        setCurrentQuestionIndex((prev) => prev + 1);
+  // Pastikan inisialisasi hanya berjalan di Client untuk menghindari Hydration Mismatch
+  useEffect(() => {
+    setHasMounted(true);
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setIsSupported(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'id-ID';
+
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setTranscript(finalTranscript);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech Recognition Error:', event.error);
+      if (event.error === 'not-allowed') {
+        alert('Akses mikrofon ditolak. Harap izinkan akses mikrofon di browser Anda.');
+        setIsListening(false);
+      }
+    };
+
+    recognition.onend = () => {
+      // Don't auto-stop if state says we should still listen
+    };
+
+    recognitionRef.current = recognition;
+  }, []);
+
+  const startListening = () => {
+    if (recognitionRef.current) {
+      try {
         setTranscript('');
-      } else {
-        alert('Simulasi Wawancara Selesai! Skor Evaluasi AI Anda sedang dihitung.');
-        setCurrentQuestionIndex(0);
-        setTranscript('');
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (err) {
+        console.error(err);
       }
     }
   };
 
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        setIsListening(false);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  const handleSubmitAnswer = () => {
+    // Stop recording first if active
+    if (isListening) {
+      stopListening();
+    }
+
+    const finalAnswerText = showManualInput ? customAnswer : transcript;
+
+    if (!finalAnswerText.trim()) {
+      alert('Tolong berikan jawaban Anda terlebih dahulu melalui suara atau ketikan manual.');
+      return;
+    }
+
+    // Catat ke logs wawancara
+    const questionText = interviewQuestions[currentQuestionIndex].text;
+    setInterviewLogs((prev) => [
+      ...prev,
+      { role: 'ai', text: questionText },
+      { role: 'siswa', text: finalAnswerText }
+    ]);
+
+    // Bersihkan jawaban
+    setTranscript('');
+    setCustomAnswer('');
+
+    // Pindah ke pertanyaan berikutnya atau selesaikan wawancara
+    if (currentQuestionIndex < interviewQuestions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    } else {
+      alert('Selamat! Anda telah menyelesaikan seluruh simulasi wawancara INTERVIEW.AI.');
+      setCurrentQuestionIndex(0);
+      setInterviewLogs([]);
+    }
+  };
+
+  if (!hasMounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400 text-xs">
+        Memuat antarmuka simulasi...
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col min-h-screen relative z-10">
+    <div className="flex flex-col min-h-screen relative z-10 bg-slate-950">
       {/* Navigation Header */}
       <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-slate-950/60 backdrop-blur-md">
         <div className="mx-auto max-w-7xl w-full">
@@ -98,7 +195,7 @@ export default function MockInterview() {
             <div className="flex items-center gap-3 flex-shrink-0">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Fase 1: Database Ready</span>
+                <span>Fase 5: Voice Active</span>
               </span>
             </div>
           </div>
@@ -114,7 +211,7 @@ export default function MockInterview() {
             Simulasi Wawancara Kerja & Beasiswa
           </h2>
           <p className="text-slate-400 text-sm">
-            Latih kelancaran berbicara Anda dengan simulator interaktif. Dengarkan pertanyaan pewawancara AI dan jawab menggunakan mikrofon.
+            Latih kelancaran berbicara Anda dengan simulator interaktif. Jawab pertanyaan pewawancara AI secara lisan.
           </p>
         </div>
 
@@ -139,17 +236,17 @@ export default function MockInterview() {
 
               <div className="absolute top-4 right-4 z-10">
                 <span className="inline-flex items-center gap-1 bg-slate-900/80 text-[10px] font-bold text-slate-300 px-2.5 py-1 rounded border border-white/5 font-mono">
-                  ⏱️ 02:45
+                  🔴 LIVE RECORDING
                 </span>
               </div>
 
               {/* AI Interviewer Avatar Feed */}
               <div className="flex flex-col items-center justify-center gap-4 text-center mt-6">
                 <div className="relative">
-                  {/* Glowing Rings */}
-                  <div className={`absolute inset-0 rounded-full bg-violet-500/25 blur-md transition-all duration-700 ${isListening ? 'scale-125 opacity-100' : 'scale-95 opacity-50'}`} />
-                  <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 via-violet-600 to-pink-500 text-white shadow-xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-pulse">
+                  {/* Glowing Rings on Voice Listening */}
+                  <div className={`absolute inset-0 rounded-full bg-indigo-500/30 blur-md transition-all duration-700 ${isListening ? 'scale-125 opacity-100 animate-pulse' : 'scale-95 opacity-50'}`} />
+                  <div className={`relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 via-violet-600 to-pink-500 text-white shadow-xl transition-all duration-350 ${isListening ? 'scale-105 ring-4 ring-indigo-500/20' : ''}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isListening ? 'animate-bounce' : 'animate-pulse'}>
                       <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                     </svg>
@@ -158,24 +255,28 @@ export default function MockInterview() {
                 
                 <div>
                   <h4 className="text-sm font-bold text-white tracking-wide">Pewawancara Utama (AI)</h4>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Gemini 2.5 Flash Engine</p>
+                  <p className="text-[10px] text-indigo-400 uppercase tracking-wider font-bold">
+                    {isListening ? 'Sedang mendengarkan jawaban Anda...' : 'Gemini 2.5 Flash Engine'}
+                  </p>
                 </div>
               </div>
 
-              {/* Voice Waves Overlay */}
-              <div className="absolute bottom-4 flex gap-1.5 items-end justify-center h-8 w-full z-10">
-                <div className={`w-1 bg-violet-400 rounded-full voice-bar voice-bar-1 ${!isListening ? 'paused-anim' : ''}`} style={{ height: '70%' }}></div>
-                <div className={`w-1 bg-indigo-400 rounded-full voice-bar voice-bar-2 ${!isListening ? 'paused-anim' : ''}`} style={{ height: '40%' }}></div>
-                <div className={`w-1 bg-violet-400 rounded-full voice-bar voice-bar-3 ${!isListening ? 'paused-anim' : ''}`} style={{ height: '90%' }}></div>
-                <div className={`w-1 bg-pink-400 rounded-full voice-bar voice-bar-4 ${!isListening ? 'paused-anim' : ''}`} style={{ height: '55%' }}></div>
-                <div className={`w-1 bg-indigo-400 rounded-full voice-bar voice-bar-5 ${!isListening ? 'paused-anim' : ''}`} style={{ height: '75%' }}></div>
-              </div>
+              {/* Pulse waves at bottom */}
+              {isListening && (
+                <div className="absolute bottom-6 flex gap-1 items-end justify-center h-4 w-full z-10">
+                  <span className="w-1.5 h-3 bg-indigo-500 rounded-full animate-pulse" />
+                  <span className="w-1.5 h-5 bg-violet-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                  <span className="w-1.5 h-2 bg-pink-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                  <span className="w-1.5 h-6 bg-indigo-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }} />
+                  <span className="w-1.5 h-4 bg-violet-500 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+                </div>
+              )}
             </div>
 
             {/* Active Question Box */}
             <div className="glass-panel p-6 border border-indigo-500/20 bg-indigo-950/10">
               <h4 className="text-xs font-black text-indigo-400 uppercase tracking-widest mb-2">
-                Pertanyaan {currentQuestionIndex + 1} dari 5 &bull; {interviewQuestions[currentQuestionIndex].section}
+                Pertanyaan {currentQuestionIndex + 1} dari {interviewQuestions.length} &bull; {interviewQuestions[currentQuestionIndex].section}
               </h4>
               <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-semibold">
                 "{interviewQuestions[currentQuestionIndex].text}"
@@ -219,45 +320,76 @@ export default function MockInterview() {
             {/* Transcript Card */}
             <div className="glass-panel p-5 border border-white/5 bg-slate-900/30">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Hasil Transkrip Suara (Live)</h3>
-                {isListening && (
-                  <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  {showManualInput ? 'Tuliskan Jawaban Anda' : 'Hasil Transkrip Suara (Live)'}
+                </h3>
+                {isSupported && (
+                  <button 
+                    onClick={() => {
+                      stopListening();
+                      setShowManualInput(!showManualInput);
+                    }}
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold transition underline"
+                  >
+                    {showManualInput ? 'Gunakan Suara' : 'Ketik Manual'}
+                  </button>
                 )}
               </div>
               
-              <div className="glass-panel p-4 bg-black/30 border border-white/5 min-h-[120px] text-xs leading-relaxed">
-                {transcript ? (
-                  <p className="text-slate-200">{transcript}</p>
-                ) : (
-                  <p className="text-slate-500 italic">Mikrofon mati. Klik tombol kontrol mikrofon di bawah untuk mulai berbicara...</p>
-                )}
-              </div>
+              {showManualInput ? (
+                <textarea
+                  value={customAnswer}
+                  onChange={(e) => setCustomAnswer(e.target.value)}
+                  className="w-full h-32 rounded-lg border border-white/10 bg-slate-950 p-3 text-xs text-white resize-none leading-relaxed focus:border-indigo-500 focus:outline-none"
+                  placeholder="Ketik jawaban Anda di sini secara terstruktur..."
+                />
+              ) : (
+                <div className="glass-panel p-4 bg-black/30 border border-white/5 min-h-[120px] text-xs leading-relaxed max-h-40 overflow-y-auto">
+                  {transcript ? (
+                    <p className="text-slate-200">{transcript}</p>
+                  ) : (
+                    <p className="text-slate-500 italic">
+                      {!isSupported 
+                        ? 'SpeechRecognition tidak didukung di browser ini. Silakan gunakan opsi Ketik Manual di kanan atas.'
+                        : 'Mikrofon mati. Klik tombol mikrofon di bawah untuk mulai berbicara...'}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Large Controls Toggle */}
             <div className="flex flex-col gap-3">
-              <button 
-                onClick={handleMicToggle}
-                className={`glow-pill w-full flex items-center justify-center gap-3 rounded-xl py-4 text-sm font-bold text-white shadow-xl transition cursor-pointer ${
-                  isListening 
-                    ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 shadow-emerald-500/10 hover:from-emerald-500 hover:to-emerald-600' 
-                    : 'bg-gradient-to-r from-violet-600 to-indigo-700 shadow-indigo-500/10 hover:from-violet-500 hover:to-indigo-600'
-                }`}
-              >
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/20 ${isListening ? 'animate-pulse' : ''}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                    {isListening ? (
+              {!showManualInput && isSupported && (
+                <button 
+                  onClick={handleMicClick}
+                  className={`glow-pill w-full flex items-center justify-center gap-3 rounded-xl py-4 text-sm font-bold text-white shadow-xl transition cursor-pointer ${
+                    isListening 
+                      ? 'bg-gradient-to-r from-red-600 to-pink-600 shadow-red-500/10 hover:from-red-500 hover:to-pink-500' 
+                      : 'bg-gradient-to-r from-indigo-600 to-violet-700 shadow-indigo-500/10 hover:from-indigo-500 hover:to-violet-600'
+                  }`}
+                >
+                  <div className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/20 ${isListening ? 'animate-pulse' : ''}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                       <path d="M12 2c1.66 0 3 1.34 3 3v7c0 1.66-1.34 3-3 3s-3-1.34-3-3V5c0-1.66 1.34-3 3-3zM19 10v2a7 7 0 0 1-14 0v-2"/>
-                    ) : (
-                      <path d="M12 2c1.66 0 3 1.34 3 3v7c0 1.66-1.34 3-3 3s-3-1.34-3-3V5c0-1.66 1.34-3 3-3zM19 10v2a7 7 0 0 1-14 0v-2"/>
-                    )}
+                    </svg>
+                  </div>
+                  {isListening ? 'Hentikan Rekaman Suara' : 'Mulai Bicara / Aktifkan Mic'}
+                </button>
+              )}
+
+              {/* Kirim Jawaban Button */}
+              {((!showManualInput && transcript) || (showManualInput && customAnswer)) && (
+                <button 
+                  onClick={handleSubmitAnswer}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition cursor-pointer"
+                >
+                  Kirim Jawaban &amp; Lanjut
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                   </svg>
-                </div>
-                {isListening ? 'Kirim Jawaban ke AI' : 'Mulai Bicara / Aktifkan Mic'}
-              </button>
-              <p className="text-[10px] text-slate-500 text-center leading-relaxed">
-                *Web Speech API & Streaming Audio akan diintegrasikan pada langkah berikutnya.
-              </p>
+                </button>
+              )}
             </div>
 
           </div>
