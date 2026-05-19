@@ -6,7 +6,7 @@ export default function Home() {
       {/* Navigation Header */}
       <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-slate-950/40 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+          <div className="flex h-16 items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
@@ -15,24 +15,25 @@ export default function Home() {
                   <line x1="12" x2="12" y1="19" y2="22"/>
                 </svg>
               </div>
-              <div>
-                <h1 className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-violet-300 bg-clip-text text-transparent font-[family-name:var(--font-outfit)]">
+              <div className="min-w-0">
+                <h1 className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-violet-300 bg-clip-text text-transparent font-[family-name:var(--font-outfit)] truncate">
                   INTERVIEW.AI
                 </h1>
-                <p className="text-[10px] tracking-wider text-indigo-400 font-bold uppercase">SMK & SNBT Edition</p>
+                <p className="text-[9px] sm:text-[10px] tracking-wider text-indigo-400 font-bold uppercase truncate">SMK & SNBT Edition</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Fase 1: Database Ready
+                <span className="hidden sm:inline">Fase 1: Database Ready</span>
+                <span className="inline sm:hidden">Fase 1</span>
               </span>
               <a 
                 href="https://github.com" 
                 target="_blank" 
                 rel="noreferrer"
-                className="hidden sm:inline-flex items-center justify-center rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/5 transition"
+                className="hidden md:inline-flex items-center justify-center rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/5 transition"
               >
                 Dokumentasi API
               </a>
@@ -43,19 +44,19 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-12">
-        <section className="text-center md:text-left md:flex md:items-center md:justify-between gap-12 mb-16">
-          <div className="max-w-2xl">
+        <section className="flex flex-col lg:flex-row items-center justify-between gap-12 mb-16 text-center lg:text-left">
+          <div className="max-w-2xl w-full">
             <div className="inline-flex items-center gap-2 rounded-full bg-violet-500/10 px-4 py-1.5 text-xs font-semibold text-violet-300 border border-violet-500/20 mb-6">
               🚀 Transformasi Portofolio & Karir Siswa
             </div>
-            <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight font-[family-name:var(--font-outfit)] mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight font-[family-name:var(--font-outfit)] mb-6">
               Mempersiapkan Siswa Menuju <br />
               <span className="gradient-text-accent">Dunia Industri & Perguruan Tinggi</span>
             </h2>
-            <p className="text-slate-400 text-lg leading-relaxed mb-8">
+            <p className="text-slate-400 text-base sm:text-lg leading-relaxed mb-8">
               Bantu siswa SMK dan Calon Mahasiswa SNBT menyusun Portofolio berstandar STAR dan melatih kepercayaan diri melalui Simulasi Wawancara Interaktif berbasis kecerdasan buatan secara real-time.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <button className="glow-pill inline-flex items-center justify-center rounded-xl bg-violet-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-500/20 hover:bg-violet-700 transition cursor-pointer">
                 Mulai Simulasi Sekarang
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
@@ -68,7 +69,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="hidden md:block relative w-96 h-96 float-animation">
+          <div className="hidden lg:block relative w-96 h-96 float-animation flex-shrink-0">
             {/* Visual Glassmorphic Widget Mockups */}
             <div className="absolute top-4 left-4 w-80 p-6 glass-panel border border-white/10 shadow-2xl">
               <div className="flex justify-between items-center mb-4">
@@ -214,10 +215,10 @@ export default function Home() {
             Database schema dan relasi entitas telah di-generate dengan sukses. Berikut adalah visualisasi skema relasi tabel yang telah dibuat dalam format modern:
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-[family-name:var(--font-mono)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-xs font-[family-name:var(--font-mono)]">
             
             {/* Table Users */}
-            <div className="rounded-lg bg-white/5 p-4 border border-white/5">
+            <div className="rounded-lg bg-white/5 p-4 border border-white/5 min-w-0 overflow-x-auto">
               <div className="text-indigo-400 font-bold border-b border-white/10 pb-2 mb-2 flex justify-between items-center">
                 <span>users (Table)</span>
                 <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-1 rounded">Primary</span>
@@ -233,7 +234,7 @@ export default function Home() {
             </div>
 
             {/* Table Portfolios */}
-            <div className="rounded-lg bg-white/5 p-4 border border-white/5">
+            <div className="rounded-lg bg-white/5 p-4 border border-white/5 min-w-0 overflow-x-auto">
               <div className="text-blue-400 font-bold border-b border-white/10 pb-2 mb-2 flex justify-between items-center">
                 <span>portfolios (Table)</span>
                 <span className="text-[9px] bg-blue-500/20 text-blue-300 px-1 rounded">1-to-1</span>
@@ -247,7 +248,7 @@ export default function Home() {
             </div>
 
             {/* Table Interview Sessions */}
-            <div className="rounded-lg bg-white/5 p-4 border border-white/5">
+            <div className="rounded-lg bg-white/5 p-4 border border-white/5 min-w-0 overflow-x-auto">
               <div className="text-violet-400 font-bold border-b border-white/10 pb-2 mb-2 flex justify-between items-center">
                 <span>interview_sessions</span>
                 <span className="text-[9px] bg-violet-500/20 text-violet-300 px-1 rounded">1-to-N</span>
@@ -262,7 +263,7 @@ export default function Home() {
             </div>
 
             {/* Table Interview Logs */}
-            <div className="rounded-lg bg-white/5 p-4 border border-white/5">
+            <div className="rounded-lg bg-white/5 p-4 border border-white/5 min-w-0 overflow-x-auto">
               <div className="text-pink-400 font-bold border-b border-white/10 pb-2 mb-2 flex justify-between items-center">
                 <span>interview_logs</span>
                 <span className="text-[9px] bg-pink-500/20 text-pink-300 px-1 rounded">1-to-N</span>

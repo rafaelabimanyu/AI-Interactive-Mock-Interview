@@ -13,7 +13,7 @@
   --accent-pink: #ec4899;
 }
 
-@theme inline {
+@theme {
   --color-bg-primary: var(--bg-primary);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
