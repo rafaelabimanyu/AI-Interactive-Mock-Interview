@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# INTERVIEW.AI (SMK & SNBT Edition) 🚀
 
-## Getting Started
+**INTERVIEW.AI** adalah platform optimalisasi portofolio CV dan simulasi wawancara interaktif berbasis suara menggunakan kecerdasan buatan (Gemini AI). Aplikasi ini dirancang khusus untuk mempermudah siswa SMK (target dunia kerja/industri) dan calon mahasiswa (target jalur SNBT/perguruan tinggi) dalam mempersiapkan karir akademis maupun profesional mereka.
 
-First, run the development server:
+---
 
+## 🌟 Fitur Utama
+
+- **Fase 1: Inisialisasi Database Ready**  
+  Arsitektur database relasional MySQL yang siap menampung data user, transkrip wawancara, dan data portofolio menggunakan **Prisma ORM**.
+- **Fase 2: Integrasi Backend API & Gemini SDK**  
+  Endpoint API internal `/api/ai` yang terintegrasi secara asinkron dengan SDK Resmi `@google/genai` menggunakan model super cepat `gemini-2.5-flash`.
+- **Fase 3: Struktur UI/UX & Routing Frontend**  
+  Desain premium dengan *glassmorphism*, skema warna indigo-violet, navbar lengket, dan navigasi lintas halaman Next.js.
+- **Fase 4: AI Portofolio & CV Builder**  
+  Mengubah masukan kasual/pengalaman harian siswa menjadi resume berstandar industri dengan format **STAR (Situation, Task, Action, Result)** secara otomatis.
+- **Fase 5: Simulasi Wawancara Berbasis Suara**  
+  Simulasi wawancara interaktif menggunakan **Web Speech API** (`SpeechRecognition`) bahasa Indonesia (`id-ID`) lengkap dengan visualisasi gelombang suara.
+- **Fase 6: Evaluasi Penilaian Otomatis (AI Score Card)**  
+  Menilai rekaman wawancara secara otomatis untuk menghasilkan skor total numerik, indikator status kelolosan, daftar kekuatan utama, serta saran perbaikan.
+- **Fase 7: Dashboard Guru BK / Pengawas**  
+  Panel khusus pengawas untuk memantau nilai rata-rata simulasi, status portofolio, pencarian nama siswa, serta filter kompetensi keahlian dan target karir.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **ORM**: [Prisma ORM](https://www.prisma.io/)
+- **Database**: MySQL
+- **AI Engine**: [Google Gemini SDK](https://github.com/google/generative-ai-js) (`@google/genai` dengan model `gemini-2.5-flash`)
+- **Web API**: Web Speech API (`webkitSpeechRecognition` / `SpeechRecognition`)
+
+---
+
+## 🚀 Panduan Instalasi Lokal
+
+### Prerequisites
+Pastikan perangkat Anda sudah terinstal:
+- [Node.js](https://nodejs.org/) (versi 18+)
+- Layanan database [MySQL](https://www.mysql.com/) aktif
+
+### Langkah 1: Kloning Repositori & Instal Dependensi
+Masuk ke direktori proyek dan jalankan perintah berikut:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Langkah 2: Setup Environment Variables (`.env`)
+Buat file `.env` di root folder proyek Anda (salin dari `.env.example`) dan sesuaikan nilainya:
+```env
+# Koneksi Database MySQL
+DATABASE_URL="mysql://username:password@localhost:3306/interview_ai"
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+# Google Gemini API Key
+GEMINI_API_KEY="AIzaSyYourGeminiApiKeyHere..."
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Langkah 3: Inisialisasi Database (Prisma Migration)
+Jalankan sinkronisasi skema database relasional MySQL ke server lokal Anda menggunakan Prisma CLI:
+```bash
+npx prisma db push
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 💻 Cara Menjalankan Aplikasi
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Jalankan dev server Next.js 15 dengan Turbopack untuk performa kompilasi yang instan:
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Buka peramban browser Anda di:
+👉 **[http://localhost:3000](http://localhost:3000)**
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📂 Struktur Dokumentasi Tambahan
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Untuk mempelajari seluk-beluk teknis platform ini secara mendalam, silakan baca dokumentasi berikut:
+1. [Arsitektur & Alur Data](docs/ARCHITECTURE.md) - Penjelasan struktur direktori Next.js dan diagram alur data.
+2. [Spesifikasi Database](docs/DATABASE.md) - Dokumentasi skema relasional tabel dan relasi Prisma.
+3. [Spesifikasi API AI](docs/API_SPECIFICATION.md) - Panduan endpoint `/api/ai` POST payload.
