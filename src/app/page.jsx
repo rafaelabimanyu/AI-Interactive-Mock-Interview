@@ -36,10 +36,9 @@ export default function Home() {
               <Link href="/interview" className="text-xs font-semibold text-slate-400 hover:text-white transition-colors">
                 Simulasi Wawancara
               </Link>
-              <span className="text-xs font-semibold text-slate-600 cursor-not-allowed flex items-center gap-1.5">
+              <Link href="/dashboard" className="text-xs font-semibold text-slate-400 hover:text-white transition-colors">
                 Dashboard BK
-                <span className="text-[8px] bg-slate-800 text-slate-400 px-1 rounded font-bold uppercase">Locked</span>
-              </span>
+              </Link>
             </nav>
 
             {/* Status Badge */}
