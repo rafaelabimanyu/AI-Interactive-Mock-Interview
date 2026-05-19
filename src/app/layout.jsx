@@ -14,9 +14,9 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: "AI Interactive Mock-Interview & Portofolio Builder for SMK/SNBT",
+  title: "INTERVIEW.AI (SMK & SNBT Edition)",
   description: "Platform simulasi wawancara interaktif berbasis suara (Web Speech API) dan pengoptimal portofolio otomatis menggunakan kecerdasan buatan (Gemini AI).",
-  keywords: ["AI Mock Interview", "Portfolio Builder", "SMK", "SNBT", "Wawancara Kerja", "Beasiswa"],
+  keywords: ["INTERVIEW.AI", "AI Mock Interview", "Portfolio Builder", "SMK", "SNBT", "Wawancara Kerja", "Beasiswa"],
 };
 
 export default function RootLayout({ children }) {
@@ -25,8 +25,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body className="min-h-full flex flex-col font-sans selection:bg-violet-500/30 selection:text-violet-200">
-        <div className="gradient-bg" />
+      <body className="min-h-full flex flex-col font-sans bg-slate-950 text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
         {children}
       </body>
     </html>
