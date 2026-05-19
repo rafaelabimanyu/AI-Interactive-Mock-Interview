@@ -1,0 +1,78 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int          @id @default(autoincrement())
+  name         String
+  email        String       @unique
+  role         UserRole     @default(siswa)
+  jurusan      String?
+  target_jalur TargetJalur  @default(kerja_smk)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  portfolio         Portfolio?
+  interviewSessions InterviewSession[]
+
+  @@map("users")
+}
+
+model Portfolio {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique @map("user_id")
+  rawData      String   @db.Text @map("raw_data")
+  polishedJson String?  @db.Text @map("polished_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("portfolios")
+}
+
+model InterviewSession {
+  id           Int            @id @default(autoincrement())
+  userId       Int            @map("user_id")
+  bidangPosisi String         @map("bidang_posisi")
+  scoreTotal   Int?           @map("score_total")
+  feedbackJson String?        @db.Text @map("feedback_json")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs InterviewLog[]
+
+  @@map("interview_sessions")
+}
+
+model InterviewLog {
+  id            Int              @id @default(autoincrement())
+  sessionId     Int              @map("session_id")
+  speaker       InterviewSpeaker
+  textContent   String           @db.Text @map("text_content")
+  sequenceOrder Int              @map("sequence_order")
+
+  session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("interview_logs")
+}
+
+enum UserRole {
+  siswa
+  guru_bk
+}
+
+enum TargetJalur {
+  kerja_smk
+  kuliah_snbt
+}
+
+enum InterviewSpeaker {
+  ai
+  siswa
+}
